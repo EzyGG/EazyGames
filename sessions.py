@@ -84,6 +84,10 @@ class User:
         connect.execute(f"""UPDATE users SET password = "{password}" WHERE uuid="{self.uuid}\"""")
         connect.commit()
 
+    def get_creation(self):
+        connect.execute(f"""SELECT creation FROM users WHERE uuid="{self.uuid}\"""")
+        return connect.fetch(1)[0]
+
     def is_admin(self) -> bool:
         connect.execute(f"""SELECT admin FROM users WHERE uuid="{self.uuid}\"""")
         return bool(connect.fetch(1)[0])
@@ -155,3 +159,11 @@ class User:
     def set_theme(self, theme: int):
         connect.execute(f"""UPDATE users SET theme = {theme} WHERE uuid="{self.uuid}\"""")
         connect.commit()
+
+    def get_played_games(self) -> int:
+        connect.execute(f"""SELECT * FROM sets WHERE player="{self.uuid}\"""")
+        return len(connect.fetch())
+
+    def get_total_wins(self) -> int:
+        connect.execute(f"""SELECT * FROM sets WHERE player="{self.uuid}\" AND won=1""")
+        return len(connect.fetch())
