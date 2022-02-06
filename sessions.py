@@ -29,13 +29,38 @@ class UserNotFoundException(Exception):
             super().__init__("User cannot be found.")
 
 
+class UserAlreadyExistsException(Exception):
+    def __init__(self):
+            super().__init__("User already exists.")
+
+
 class User:
+    @staticmethod
+    def create_user(username: str, uuid: str | UUID = None, admin: bool = False, frozen: bool = False,
+                    completename: str = None, mail: str = None, password: str = ""):
+        if not uuid: uuid = UUID(username)
+        if User(username).exists():
+            raise UserAlreadyExistsException()
+        else:
+            connect.execute(f"""INSERT users(uuid, admin, frozen, username, completename, mail, password)
+                                VALUES ("{str(uuid).lower()}", {1 if admin else 0}, {1 if frozen else 0},
+                                "{username.lower()}", {"null" if completename is None or completename == " " else
+                                ('"' + completename + '"')}, {'null' if mail is None else ('"' + str(mail).lower()
+                                + '"')}, "{"" if password is None else str(password).lower()}")""")
+            connect.commit()
+        return User(username, password)
+
     def __init__(self, connection_id: str | UUID, password: str = ""):
         self.uuid: UUID = None
         self.password: str = None
         self.reconnect(connection_id, password)
 
     def exists(self) -> bool:
+        connect.execute(f"""SELECT * FROM users WHERE uuid="{str(self.uuid).lower()}"
+                            OR username="{str(self.uuid).lower()}" OR mail="{str(self.uuid).lower()}\"""")
+        return bool(len(connect.fetch()))
+
+    def connected(self) -> bool:
         connect.execute(f"""SELECT * FROM users WHERE (uuid="{str(self.uuid).lower()}"
                             OR username="{str(self.uuid).lower()}" OR mail="{str(self.uuid).lower()}")
                             AND password="{self.password}\"""")
@@ -43,7 +68,7 @@ class User:
 
     def reconnect(self, connection_id: str | UUID, password: str = ""):
         self.uuid, self.password = str(connection_id), str(password)
-        if self.exists():
+        if self.connected():
             connect.execute(f"""SELECT uuid FROM users WHERE (uuid="{str(self.uuid).lower()}"
                                 OR username="{str(self.uuid).lower()}" OR mail="{str(self.uuid).lower()}")
                                 AND password="{self.password}\"""")
@@ -62,7 +87,8 @@ class User:
 
     def get_completename(self) -> str:
         connect.execute(f"""SELECT completename FROM users WHERE uuid="{self.uuid}\"""")
-        return connect.fetch(1)[0]
+        f = connect.fetch(1)[0]
+        return self.get_username() if f is None else f
 
     def set_completename(self, completename: str):
         connect.execute(f"""UPDATE users SET completename = "{completename}" WHERE uuid="{self.uuid}\"""")
