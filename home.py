@@ -2,11 +2,14 @@ import os
 import time
 import tkinter as tk
 from sessions import User, UserAlreadyExistsException
+import mysql_connection as connect
 import requests
 from securized import ServerRessources
 
 
 class Home(tk.Tk):
+    VERSION_GLOBAL = "1.0"
+    VERSION_EXP = "1.0-SNAPSHOT-alpha1.6"
     COLOR_BG = "gray"
     COLOR_BG2 = "dim gray"
     COLOR_BG3 = "dark gray"
@@ -94,8 +97,81 @@ class Home(tk.Tk):
                 #  |  -> "Il y a ... Joueurs connectés :"
                 #  |  -> *petit § avec la liste des gens connectés*
                 #  ---
-                #  | Si ya de la place, Boutton "Quitter le Jeu"
+                #  | Si ya de la place:
+                #  |  -> Version de l'app
+                #  |  -> Boutton "Quitter le Jeu"
                 #  ---
+
+                # TODO -> For Now -> Commencer le menu + Update le webflow + Chercher la conso
+                #  + Pr la semaine pro : Système de jeu FONCTIONNEL ! (fichiers .py / .exe, config[.yml .any .ezygg
+                #   -> crypté pour ne pas changer les points du coté utilisateur], api pour les autres jeux
+                #   OU ALORS les autres jeux == API !!!! breff à voir.)
+
+                self.spacing = 5
+                self.intent = 10
+
+                tk.Frame(self, bg=Home.COLOR_BG2).pack(pady=10)
+
+                self.img = tk.PhotoImage(file="rsrc/icon.png")
+                self.img = self.img.subsample(int(self.img.width()/100), int(self.img.height()/100))
+                self.face_img = tk.Label(self, bg=Home.COLOR_BG2, image=self.img, height=100, width=100)
+                self.face_img.pack(anchor="w")
+                tk.Frame(self, bg=Home.COLOR_BG2).pack(pady=self.spacing)
+
+                self.menu_title = tk.Label(self, bg=Home.COLOR_BG2, font=("", 8,"bold italic"), text="Menu : (non fonctionnel)")
+                self.menu_title.pack(anchor="w")
+                self.all_games_btn = tk.Button(self, activebackground=Home.COLOR_BG2, bg=Home.COLOR_BG2,
+                                               bd=0, relief="solid", text="- Tous les jeux",
+                                               command=lambda: self.all_games_btn.configure(text=" - Plus Tard... :/"))
+                self.all_games_btn.pack(padx=self.intent, anchor="w")
+                self.tops_btn = tk.Button(self, activebackground=Home.COLOR_BG2, bg=Home.COLOR_BG2,
+                                          bd=0, relief="solid", text="- Tops des joueurs",
+                                          command=lambda: self.tops_btn.configure(text=" - Plus Tard... :/"))
+                self.tops_btn.pack(padx=self.intent, anchor="w")
+                self.reward_btn = tk.Button(self, activebackground=Home.COLOR_BG2, bg=Home.COLOR_BG2,
+                                            bd=0, relief="solid", text="- Récompenses",
+                                            command=lambda: self.reward_btn.configure(text=" - Plus Tard... :/"))
+                self.reward_btn.pack(padx=self.intent, anchor="w")
+                self.shop_btn = tk.Button(self, activebackground=Home.COLOR_BG2, bg=Home.COLOR_BG2,
+                                          bd=0, relief="solid", text="- Boutique",
+                                          command=lambda: self.shop_btn.configure(text=" - Plus Tard... :/"))
+                self.shop_btn.pack(padx=self.intent, anchor="w")
+                tk.Frame(self, bg=Home.COLOR_BG2).pack(pady=self.spacing)
+
+                self.menu_title = tk.Label(self, bg=Home.COLOR_BG2, font=("", 8,"bold italic"), text="Top 5 :")
+                self.menu_title.pack(anchor="w")
+                self.top_5_widgets = []
+                connect.execute("""SELECT uuid FROM users WHERE lvl!=1 OR exp!=0 ORDER BY lvl DESC, exp DESC, points DESC LIMIT 5""")
+                top5 = connect.fetch()
+                for i in range(5):
+                    if len(top5) > i:
+                        u = User(top5[i][0])
+                        text = str(i + 1) + ". " + u.get_completename() + " [" + str(u.get_lvl()) + "]"
+                    else:
+                        text = str(i + 1) + ". ..."
+                    top = tk.Button(self, activebackground=Home.COLOR_BG2, bg=Home.COLOR_BG2,
+                                     bd=0, relief="solid", font=("", 8, "italic"), text=text)  # TODO -> Command: Show user info
+                    top.pack(padx=0, anchor="w")
+                    self.top_5_widgets.append(top)
+                tk.Frame(self, bg=Home.COLOR_BG2).pack(pady=self.spacing)
+
+                self.more_frame = tk.Frame(self, bg=Home.COLOR_BG2)
+                self.more_frame.pack(pady=self.spacing, side="bottom")
+                self.rules_politics = tk.Button(self.more_frame, activebackground=Home.COLOR_BG2, bg=Home.COLOR_BG2,
+                                                bd=0, relief="solid", font=("", 6, "underline"),
+                                                text="© Politique EzyGG",  # TODO -> Command: redirect to Politics Page
+                                                command=lambda: self.rules_politics.configure())
+                self.rules_politics.pack(side="left", padx=0)
+                self.logout_button = tk.Button(self.more_frame, activebackground=Home.COLOR_BG2, bg=Home.COLOR_BG2,
+                                                bd=0, relief="solid", font=("", 6, "underline"),
+                                                text="v" + Home.VERSION_EXP,  # TODO -> Command: redirect to GitHub
+                                                command=lambda: self.logout_button.configure())
+                self.logout_button.pack(side="left", padx=0)
+
+                connect.execute("""SELECT * FROM users""")
+                self.online_members = tk.Label(self, bg=Home.COLOR_BG2, text="Total des Joueurs : " + str(len(connect.fetch()[0])))
+                self.online_members.pack(pady=self.spacing, side="bottom", anchor="w")
+                tk.Frame(self, bg=Home.COLOR_BG2).pack(pady=self.spacing)
 
             def show(self):
                 self.place(relx=0, rely=1, anchor="sw", height=self.master.master.winfo_height(),
@@ -417,8 +493,9 @@ class Home(tk.Tk):
             if not self.mail_entry.get():
                 self.mail_label.config(font=self.F_NORMAL, fg=self.C_NORMAL)
             elif self.mail_entry.get().count("@") == 1 and len(self.mail_entry.get().split("@")[0]) \
-                    and len(self.mail_entry.get().split("@")[1]) >= 3 \
-                    and self.mail_entry.get().split("@")[1].count(".") == 1:
+                    and self.mail_entry.get().split("@")[1].count(".") == 1 \
+                    and len(self.mail_entry.get().split("@")[1].split(".")[0]) \
+                    and len(self.mail_entry.get().split("@")[1].split(".")[1]):
                 self.mail_label.config(font=self.F_NORMAL, fg=self.C_SPECIAL)
             else:
                 self.mail_label.config(font=self.F_MODIFY, fg=self.C_ERROR)

@@ -12,7 +12,7 @@
 
 __**Nom**__ : EzyGames<br>
 __**Version Globale**__ : `1.0`<br>
-__**Version Experimentale**__ : `1.0-SNAPSHOT-alpha1.5`<br>
+__**Version Experimentale**__ : `1.0-SNAPSHOT-alpha1.6`<br>
 __**Version de Python**__ : `Python 1.10`<br>
 __**Developpeurs**__ : Luzog78<br>
 __**Dépendances**__ : [tkinter, mysql-connection-python, requests]
