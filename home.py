@@ -1,15 +1,17 @@
 import os
+import threading
 import time
 import tkinter as tk
-from sessions import User, UserAlreadyExistsException
-import mysql_connection as connect
+from sessions_master import User, UserAlreadyExistsException
+from ezyapi.UUID import UUID
+import ezyapi.mysql_connection as connect
+import ezyapi.game_manager as manager
 import requests
 from securized import ServerRessources
 
 
 class Home(tk.Tk):
-    VERSION_GLOBAL = "1.0"
-    VERSION_EXP = "1.0-SNAPSHOT-alpha2.0"
+    VERSION = manager.GameVersion("b1.0")
     COLOR_BG = "gray"
     COLOR_BG2 = "dim gray"
     COLOR_BG3 = "dark gray"
@@ -38,6 +40,9 @@ class Home(tk.Tk):
             self.iconbitmap("rsrc/icon.ico")
         except Exception:
             pass
+
+        if connect.connection is None:
+            connect.connexion()
 
         Home.LogInFrame(self).show()
 
@@ -86,6 +91,17 @@ class Home(tk.Tk):
             # self.temp_geometry = self.winfo_geometry()
             self.bind("<Configure>", self.on_configure)
 
+            def init():
+                """
+                Explanation: wait "asynchronously" (synchronously but in another Thread to load all components
+                in a same time) 0.1sec and after, refresh the screen to remove unnecessary scrollbar.
+                """
+                t = threading.Thread()
+                t.start()
+                t.join(0.1)
+                threading.Thread(target=self.on_configure).start()
+            threading.Thread(target=init).start()
+
         def show(self):
             self.place(relx=0.5, rely=0.5, anchor=tk.CENTER, height=self.master.winfo_height(),
                        width=self.master.winfo_width())
@@ -94,7 +110,7 @@ class Home(tk.Tk):
             self.place_configure(relx=0.5, rely=0.5, anchor=tk.CENTER, height=self.master.winfo_height(),
                                  width=self.master.winfo_width())
 
-        def on_configure(self, event):
+        def on_configure(self, event=None):
             # def get_real_geometry(geometry: str):
             #     return (int(geometry.split("x")[0]) + int(geometry.split("x")[1].split("+")[0]),
             #             int(geometry.split("x")[1].split("+")[1]) + int(geometry.split("x")[1].split("+")[2]))
@@ -171,7 +187,7 @@ class Home(tk.Tk):
                 self.menu_title = tk.Label(self, bg=Home.COLOR_BG2, font=("", 8,"bold italic"), text="Top 5 :")
                 self.menu_title.pack(anchor="w")
                 self.top_5_widgets = []
-                connect.execute("""SELECT uuid FROM users WHERE lvl!=1 OR exp!=0 ORDER BY lvl DESC, exp DESC, points DESC LIMIT 5""")
+                connect.execute("""SELECT uuid FROM users WHERE lvl!=1 OR exp!=0 ORDER BY lvl DESC, exp DESC, gp DESC LIMIT 5""")
                 top5 = connect.fetch()
                 for i in range(5):
                     if len(top5) > i:
@@ -194,7 +210,7 @@ class Home(tk.Tk):
                 self.rules_politics.pack(side="left", padx=0)
                 self.logout_button = tk.Button(self.more_frame, activebackground=Home.COLOR_BG2, bg=Home.COLOR_BG2,
                                                 bd=0, relief="solid", font=("", 6, "underline"),
-                                                text="v" + Home.VERSION_EXP,  # TODO -> Command: redirect to GitHub
+                                                text=Home.VERSION.get_version(),  # TODO -> Command: redirect to GitHub
                                                 command=lambda: self.logout_button.configure())
                 self.logout_button.pack(side="left", padx=0)
 
@@ -224,10 +240,10 @@ class Home(tk.Tk):
                 self.scroll.configure(command=self.canvas.yview)
                 self.canvas.pack(side="left", fill="both", expand=True)
 
-                self.games = [self.GameDiv(self.container, "TicTacToe", "That is a very professional Tic Tac Toe made by the famous developer Luzog (from EzyGames Team) !",
-                              lvl=3, exp=140, gp=38, func=lambda: print("Heyy")) for i in range(5)]
-                # TODO -> Read games/<game>/sett.ezy -> get title, image, catchphrase, lvl, exp, gp, sp, and executable
-                #  ->> try to encrypt with key: md5("EzyGames"): b5e163c228ac98924aeaeb0db200e29b
+                connect.execute("SELECT * FROM games")
+                self.games = [self.GameDiv(self.container, UUID(id), name, catchphrase=catchphrase, exp=exp, gp=gp)
+                              for id, name, accessible, creation, creator, exp, gp, other, catchphrase, desc
+                              in connect.fetch()]
 
                 self.update_place()
 
@@ -253,29 +269,57 @@ class Home(tk.Tk):
                 TOTAL_WIDTH = 235
                 TOTAL_HEIGHT = 335
 
-                def __init__(self, master, title: str, catchphrase: str, image: tk.PhotoImage = None, row: int = 0,
-                             column: int = 0, exp=0, gp=0, lvl=0, special=None, func=None):
+                def __init__(self, master, uuid: UUID, name: str, catchphrase: str = None,
+                             row: int = 0, column: int = 0, exp=0, gp=0, lvl=0, special=None):
                     # TODO -> Add <Enter> <Leave> Events (mouse hover effect)
                     super().__init__(master, background=Home.COLOR_BG, highlightthickness=2,
                                      highlightbackground=Home.COLOR_BG2, width=220, height=320)
+                    self.uuid: UUID = uuid
                     self.row, self.column = row, column
-                    self.title, self.catchphrase = title, catchphrase
+                    self.name, self.catchphrase = name, catchphrase
                     self.exp, self.gp, self.lvl, self.special = exp, gp, lvl, special
 
                     self.pack_propagate(0)
 
                     self.IMAGE_SIZE = (220, 160)
-                    self.img = tk.PhotoImage(file="rsrc/icon.png") if image is None else image
-                    if self.img.width() > self.IMAGE_SIZE[0] or self.img.height() > self.IMAGE_SIZE[1]:
-                        if self.img.width() - self.IMAGE_SIZE[0] > self.img.height() - self.IMAGE_SIZE[1]:
-                            final_geometry = (self.IMAGE_SIZE[0], (self.IMAGE_SIZE[0] / self.img.width()) * self.img.height())
-                        else:
-                            final_geometry = ((self.IMAGE_SIZE[1] / self.img.height()) * self.img.width(), self.IMAGE_SIZE[1])
-                        self.img = self.img.subsample(int(self.img.width() / final_geometry[0]), int(self.img.height() / final_geometry[1]))
-                    self.image_label = tk.Label(self, bg=Home.COLOR_BG2, height=self.IMAGE_SIZE[1], width=self.IMAGE_SIZE[0], image=self.img)
-                    self.image_label.pack(anchor="center")
 
-                    self.title_label = tk.Label(self, bg=Home.COLOR_BG, text=str(title), font=("", 12, "bold underline"), wraplengt=220)
+                    self.img: tk.PhotoImage = None
+
+                    def find():
+                        t = None
+                        for f in os.listdir(f"games/{uuid}"):
+                            if "." in f and f.split(".")[0] == "thumbnail":
+                                t = f.split(".")[1]
+                                break
+                        if t is not None:
+                            self.img = tk.PhotoImage(file=f"games/{uuid}/thumbnail.{t}")
+
+                    try:
+                        find()
+                        if self.img is None:
+                            for r in manager.import_resources(uuid):
+                                if r.specification == "thumbnail":
+                                    r.save_if_doesnt_exists(f"games/{uuid}", name="thumbnail")
+                            find()
+                    except FileNotFoundError:
+                        for r in manager.import_resources(uuid):
+                            if r.specification == "thumbnail":
+                                r.save_if_doesnt_exists(f"games/{uuid}", name="thumbnail")
+                        find()
+
+                    if self.img:
+                        if self.img.width() > self.IMAGE_SIZE[0] or self.img.height() > self.IMAGE_SIZE[1]:
+                            if self.img.width() - self.IMAGE_SIZE[0] > self.img.height() - self.IMAGE_SIZE[1]:
+                                final_geometry = (self.IMAGE_SIZE[0], (self.IMAGE_SIZE[0] / self.img.width()) * self.img.height())
+                            else:
+                                final_geometry = ((self.IMAGE_SIZE[1] / self.img.height()) * self.img.width(), self.IMAGE_SIZE[1])
+                            self.img = self.img.subsample(int(self.img.width() / final_geometry[0]), int(self.img.height() / final_geometry[1]))
+                        self.image_label = tk.Label(self, bg=Home.COLOR_BG2, height=self.IMAGE_SIZE[1], width=self.IMAGE_SIZE[0], image=self.img)
+                        self.image_label.pack(anchor="center")
+                    else:
+                        tk.Frame(self, bg=Home.COLOR_BG2, height=self.IMAGE_SIZE[1], width=self.IMAGE_SIZE[0]).pack(anchor="center")
+
+                    self.title_label = tk.Label(self, bg=Home.COLOR_BG, text=str(name), font=("", 12, "bold underline"), wraplengt=220)
                     self.title_label.pack()
 
                     self.catchphrase_label = tk.Label(self, bg=Home.COLOR_BG, text=str(catchphrase), wraplengt=220)
@@ -288,7 +332,7 @@ class Home(tk.Tk):
                     self.more_button.pack(side="left", padx=8)
                     self.play_button = tk.Button(self.play_frame, activebackground=Home.COLOR_BG, bg=Home.COLOR_BG,
                                                  bd=1, relief="solid", width=10, text="Jouer !", font=("", 8),
-                                                 command=func)
+                                                 command=self.play)
                     self.play_button.pack(side="right", padx=8)
                     self.play_frame.pack(side="bottom")
 
@@ -297,7 +341,7 @@ class Home(tk.Tk):
                         self.gp_label = tk.Label(self.reward_frame2, bg=Home.COLOR_BG, font=("", 8), text=f"+{gp} GP", fg=Home.COLOR_GP)
                         self.gp_label.pack(side="left")
                     if special:
-                        self.sp_label = tk.Label(self.reward_frame2, bg=Home.COLOR_BG, font=("", 8), text=f"+{special}", fg=Home.COLOR_SPECIAL)
+                        self.sp_label = tk.Label(self.reward_frame2, bg=Home.COLOR_BG, font=("", 8), text=f"{special}", fg=Home.COLOR_SPECIAL)
                         self.sp_label.pack(side="bottom")
                     self.reward_frame2.pack(side="bottom")
 
@@ -322,6 +366,16 @@ class Home(tk.Tk):
                     if row is not None: self.row = row
                     if column is not None: self.column = column
                     self.grid(padx=15, pady=15, row=self.row, column=self.column)
+
+                def play(self):
+                    if not (self.uuid.getUUID() in os.listdir("games")
+                            and ("main.exe" in os.listdir("games\\" + self.uuid.getUUID())
+                                 or "main.py" in os.listdir("games\\" + self.uuid.getUUID()))):
+                        manager.import_resource(self.uuid, "game").save_by_erasing("games/" + self.uuid.getUUID())
+                    pwd = self.master.master.master.master.master.user.password.replace('"', '\\"')
+                    os.system(f"start /d {os.getcwd()}\\games\\{self.uuid.getUUID()} main --uuid \"{self.master.master.master.master.master.user.uuid.getUUID()}\" --password \"{pwd}\"")
+                    # TODO -> destroy() or not in options
+                    # self.master.master.master.master.master.destroy()
 
         class Information(tk.Frame):
             def __init__(self, master):
@@ -383,7 +437,7 @@ class Home(tk.Tk):
 
                 self.gp_info = tk.Label(self, bg=Home.COLOR_BG2, font=("", 8, "bold"), text="Points de Jeu (GP) :")
                 self.gp_info.pack(anchor="e")
-                self.gp = tk.Label(self, bg=Home.COLOR_BG2, text=self.master.master.user.get_points())
+                self.gp = tk.Label(self, bg=Home.COLOR_BG2, text=self.master.master.user.get_gp())
                 self.gp.pack(anchor="e")
                 tk.Frame(self, bg=Home.COLOR_BG2).pack(pady=self.spacing)
 
