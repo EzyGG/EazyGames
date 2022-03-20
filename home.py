@@ -1,17 +1,19 @@
 import os
-import threading
 import time
-import tkinter as tk
-from sessions_master import User, UserAlreadyExistsException
-from ezyapi.UUID import UUID
-import ezyapi.mysql_connection as connect
-import ezyapi.game_manager as manager
 import requests
+import threading
+import tkinter as tk
+from PIL import Image as Image, ImageTk
+
+from ezyapi.UUID import UUID
+import ezyapi.game_manager as manager
 from securized import ServerRessources
+import ezyapi.mysql_connection as connect
+from sessions_master import User, UserAlreadyExistsException
 
 
 class Home(tk.Tk):
-    VERSION = manager.GameVersion("b1.0")
+    VERSION = manager.GameVersion("b1.1")
     COLOR_BG = "gray"
     COLOR_BG2 = "dim gray"
     COLOR_BG3 = "dark gray"
@@ -158,9 +160,11 @@ class Home(tk.Tk):
 
                 tk.Frame(self, bg=Home.COLOR_BG2).pack(pady=10)
 
-                self.img = tk.PhotoImage(file="rsrc/icon.png")
-                self.img = self.img.subsample(int(self.img.width()/100), int(self.img.height()/100))
-                self.face_img = tk.Label(self, bg=Home.COLOR_BG2, image=self.img, height=100, width=100)
+                self.img = Image.open("rsrc/icon.png")
+                self.img = self.img.resize((100, 100), Image.ANTIALIAS)
+                _img = ImageTk.PhotoImage(self.img)
+                self.face_img = tk.Label(self, bg=Home.COLOR_BG2, image=_img, height=100, width=100)
+                self.face_img.image = _img
                 self.face_img.pack(anchor="w")
                 tk.Frame(self, bg=Home.COLOR_BG2).pack(pady=self.spacing)
 
@@ -295,6 +299,11 @@ class Home(tk.Tk):
                             self.img = tk.PhotoImage(file=f"games/{uuid}/thumbnail.{t}")
 
                     try:
+                        os.mkdir(f"games/{uuid}")
+                    except Exception:
+                        pass
+
+                    try:
                         find()
                         if self.img is None:
                             for r in manager.import_resources(uuid):
@@ -313,7 +322,7 @@ class Home(tk.Tk):
                                 final_geometry = (self.IMAGE_SIZE[0], (self.IMAGE_SIZE[0] / self.img.width()) * self.img.height())
                             else:
                                 final_geometry = ((self.IMAGE_SIZE[1] / self.img.height()) * self.img.width(), self.IMAGE_SIZE[1])
-                            self.img = self.img.subsample(int(self.img.width() / final_geometry[0]), int(self.img.height() / final_geometry[1]))
+                            self.img = self.img.subsample(round(self.img.width() / final_geometry[0]), round(self.img.height() / final_geometry[1]))
                         self.image_label = tk.Label(self, bg=Home.COLOR_BG2, height=self.IMAGE_SIZE[1], width=self.IMAGE_SIZE[0], image=self.img)
                         self.image_label.pack(anchor="center")
                     else:
@@ -378,15 +387,28 @@ class Home(tk.Tk):
                     # self.master.master.master.master.master.destroy()
 
         class Information(tk.Frame):
+            FACE_IMG_SIZE = (96, 96)
+
             def __init__(self, master):
                 super().__init__(master, background=Home.COLOR_BG2)
                 self.spacing = 5
 
                 tk.Frame(self, bg=Home.COLOR_BG2).pack(pady=35)
 
-                self.img = tk.PhotoImage(file="rsrc/default_face.png")
-                self.img = self.img.subsample(int(self.img.width()/64), int(self.img.height()/64))
-                self.face_img = tk.Label(self, bg=Home.COLOR_BG2, image=self.img, height=64, width=64)
+                try:
+                    self.img = Image.open("rsrc/temp/profile.png")
+                except Exception:
+                    self.img = Image.open("rsrc/default_face.png")
+                _, _, width, height = self.img.getbbox()
+                if width > self.FACE_IMG_SIZE[0] or height > self.FACE_IMG_SIZE[1]:
+                    if width - self.FACE_IMG_SIZE[0] > height - self.FACE_IMG_SIZE[1]:
+                        final_geometry = (self.FACE_IMG_SIZE[0], int((self.FACE_IMG_SIZE[0] / width) * height))
+                    else:
+                        final_geometry = (int((self.FACE_IMG_SIZE[1] / height) * width), self.FACE_IMG_SIZE[1])
+                    self.img = self.img.resize(final_geometry, Image.ANTIALIAS)
+                _img = ImageTk.PhotoImage(self.img)
+                self.face_img = tk.Label(self, bg=Home.COLOR_BG2, image=_img, height=self.FACE_IMG_SIZE[1], width=self.FACE_IMG_SIZE[0])
+                self.face_img.image = _img
                 self.face_img.pack(anchor="e")
                 tk.Frame(self, bg=Home.COLOR_BG2).pack(pady=self.spacing)
 
@@ -523,6 +545,14 @@ class Home(tk.Tk):
                 self.master.user = u
                 time.sleep(0.5)
                 self.destroy()
+                try:
+                    os.mkdir("rsrc/temp")
+                except Exception:
+                    pass
+                try:
+                    manager.import_resource(u.get_uuid(), "profile").save_by_erasing("rsrc/temp", name="profile")
+                except Exception:
+                    pass
                 Home.HomeFrame(self.master).show()
 
         def register_btn(self):
