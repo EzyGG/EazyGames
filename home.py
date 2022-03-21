@@ -13,7 +13,7 @@ from sessions_master import User, UserAlreadyExistsException
 
 
 class Home(tk.Tk):
-    VERSION = manager.GameVersion("b1.1")
+    VERSION = manager.GameVersion("b1.2")
     COLOR_BG = "gray"
     COLOR_BG2 = "dim gray"
     COLOR_BG3 = "dark gray"
