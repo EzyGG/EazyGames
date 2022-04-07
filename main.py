@@ -1,4 +1,4 @@
-from home import Home
+from fr.luzog.ezygg.master import Main
 
 
-app = Home().start()
+app = Main().start()

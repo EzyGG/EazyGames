@@ -26,6 +26,16 @@ class User:
         self.password: str = None
         self.reconnect(connection_id, password)
 
+    def create_user(self, username: str, completename: str | None, mail: str | None, password: str):
+        if not username or password is None:
+            raise Exception("Username or Password not allowed...")
+        username, completename = str(username), str(completename) if completename else None
+        mail, password = str(mail) if mail else None, str(password)
+        connect.execute(f"""INSERT INTO users(username, completename, mail, password)
+                        VALUES ("{username}", {('"' + completename + '"') if completename else 'null'},
+                        {('"' + mail + '"') if mail else 'null'}, "{password if password else ''}");""")
+        connect.commit()
+
     def exists(self) -> bool:
         connect.execute(f"""SELECT * FROM users WHERE uuid="{str(self.uuid).lower()}"
                             OR username="{str(self.uuid).lower()}" OR mail="{str(self.uuid).lower()}\"""")

@@ -11,7 +11,7 @@
 ## Informations complémentaires
 
 __**Nom**__ : EzyGames<br>
-__**Version Globale**__ : `b1.2`<br>
+__**Version Globale**__ : `b1.3`<br>
 __**Version de Python**__ : Python 1.10<br>
 __**Developpeurs**__ : Luzog<br>
 __**Dépendances**__ : [tkinter, hashlib, random, mysql-connection-python, requests]

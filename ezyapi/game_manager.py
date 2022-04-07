@@ -374,14 +374,14 @@ def update():
         if ".dev" in os.listdir():
             return
         for file in os.listdir():
-            if not (str(file).lower() in ["main", "main.py", "main.exe", "main.bat", "main.msi", ".persists"]
+            if not (str(file).lower() in ["main", "center.py", "main.exe", "main.bat", "main.msi", ".persists"]
                     or str(file).lower().endswith(".persists") or str(file).lower().endswith(".temp")):
                 try:
                     os.remove(file)
                 except OSError:
                     shutil.rmtree(file)
         try:
-            os.renames("main.py", "main.py.temp")
+            os.renames("center.py", "center.py.temp")
         except FileNotFoundError:
             os.rename("main.exe", "main.exe.temp")
         for r in import_resources(__game_info.uuid):
