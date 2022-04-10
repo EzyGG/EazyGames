@@ -1,8 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from ezyapi.game_manager import GameVersion
 
 
-VERSION = GameVersion("b1.3")
+VERSION = GameVersion("b1.4")
 
 
 class Constants:
@@ -286,6 +286,67 @@ class Display:
         f_nothing: tuple[str, int, str] = ("", 8, "bold")
         f_btn: tuple[str, int, str] = ("", 8, "")
 
+    @dataclass
+    class Chat:
+        bg: str = "dark gray"
+        datetime_format: str = "%d/%m/%y %H:%M"
+
+        f_entry: tuple[str, int, str] = ("Arial", 10, "")
+
+        f_default: tuple[str, int, str] = ("Arial", 9, "")  # VARS: %DEFAULT_FONT% %DEFAULT_FONT_FAMILY% %DEFAULT_FONT_SIZE% %DEFAULT_FONT_MODIF%
+        c_default: str = "#000000"                          # VAR:  %DEFAULT_COLOR%
+
+        NORMAL:                       dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": "%DEFAULT_FONT%", "foreground": "#000000"})
+        SENDER:                       dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "bold underline")})
+        SENDER_SELF:                  dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "bold underline italic")})
+        DATETIME:                     dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", 6, "italic"), "foreground": "dim gray"})
+
+        FORMAT_BOLD:                  dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "bold")})
+        FORMAT_ITALIC:                dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "italic")})
+        FORMAT_UNDERLINE:             dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "underline")})
+        FORMAT_BOLD_ITALIC:           dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "bold italic")})
+        FORMAT_BOLD_UNDERLINE:        dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "bold underline")})
+        FORMAT_ITALIC_UNDERLINE:      dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "italic underline")})
+        FORMAT_BOLD_ITALIC_UNDERLINE: dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "bold italic underline")})
+
+        COLOR_BLACK:                  dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#000000"})
+        COLOR_WHITE:                  dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#ffffff"})
+        COLOR_DARK_GRAY:              dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#555555"})
+        COLOR_GRAY:                   dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#aaaaaa"})
+        COLOR_DARK_BLUE:              dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#0000aa"})
+        COLOR_BLUE:                   dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#5555ff"})
+        COLOR_DARK_GREEN:             dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#00aa00"})
+        COLOR_GREEN:                  dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#55ff55"})
+        COLOR_DARK_AQUA:              dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#00aaaa"})
+        COLOR_AQUA:                   dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#55ffff"})
+        COLOR_DARK_RED:               dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#aa0000"})
+        COLOR_RED:                    dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#ff5555"})
+        COLOR_DARK_PURPLE:            dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#aa00aa"})
+        COLOR_PURPLE:                 dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#ff55ff"})
+        COLOR_GOLD:                   dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#ffaa00"})
+        COLOR_YELLOW:                 dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#ffff55"})
+
+        def __post_init__(self):
+            for item in dir(self):
+                if item.startswith("_") or item.upper() != item or not isinstance(getattr(self, item), dict):
+                    continue
+
+                def format_vars(string):
+                    return self.f_default if string == "%DEFAULT_FONT%" \
+                           else string.replace("%DEFAULT_FONT_FAMILY%", str(self.f_default[0])) \
+                                      .replace("%DEFAULT_FONT_SIZE%", str(self.f_default[1])) \
+                                      .replace("%DEFAULT_FONT_MODIF%", str(self.f_default[2])) \
+                                      .replace("%DEFAULT_COLOR%", str(self.c_default))
+
+                d = getattr(self, item)
+                for k, v in d.items():
+                    if isinstance(v, tuple) or isinstance(v, list):
+                        d[k] = [format_vars(i) if isinstance(i, str) else i for i in v]
+                    elif isinstance(v, str):
+                        d[k] = format_vars(v)
+                setattr(self, item, d)
+                print(item, getattr(self, item))
+
 
 @dataclass
 class Theme:
@@ -299,6 +360,7 @@ class Theme:
     center: Display.Center
     information: Display.Information
     game_div: Display.GameDiv
+    chat: Display.Chat
 
     @staticmethod
     def original():
@@ -313,6 +375,7 @@ class Theme:
             center=Display.Center(),
             information=Display.Information(),
             game_div=Display.GameDiv(),
+            chat=Display.Chat(),
         )
 
     @staticmethod
@@ -328,6 +391,7 @@ class Theme:
             center=Display.Center(),
             information=Display.Information(),
             game_div=Display.GameDiv(),
+            chat=Display.Chat(),
         )
 
     @staticmethod
@@ -343,6 +407,7 @@ class Theme:
             center=Display.Center(),
             information=Display.Information(),
             game_div=Display.GameDiv(),
+            chat=Display.Chat(),
         )
 
     @staticmethod
@@ -358,4 +423,5 @@ class Theme:
             center=Display.Center(),
             information=Display.Information(),
             game_div=Display.GameDiv(),
+            chat=Display.Chat(),
         )

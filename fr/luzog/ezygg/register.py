@@ -148,10 +148,53 @@ class RegisterFrame(tk.Frame):
 
         if not self.mail_entry.get():
             self.mail_label.config(font=self.theme.register.f_normal, fg=self.theme.register.c_normal)
-        elif self.mail_entry.get().count("@") == 1 and len(self.mail_entry.get().split("@")[0]) \
-                and self.mail_entry.get().split("@")[1].count(".") == 1 \
-                and len(self.mail_entry.get().split("@")[1].split(".")[0]) \
-                and len(self.mail_entry.get().split("@")[1].split(".")[1]):
+        elif "GENERAL" and (self.mail_entry.get().count("@") == 1 and ".." not in self.mail_entry.get()) \
+                and "LOCAL PART" \
+                and (
+                    6 <= len(self.mail_entry.get().split("@")[0]) <= 30
+                    and not [True for c in self.mail_entry.get().split("@")[0].lower()
+                             if c not in "abcdefghijklmnopqrstuvwxyz0123456789-."]
+                    and self.mail_entry.get().split("@")[0][0] not in "-."
+                    and self.mail_entry.get().split("@")[0][-1] not in "-."
+                ) \
+                and "DOMAIN PART" \
+                and ((not "CLASSIC DOMAIN") or (
+                    self.mail_entry.get().split("@")[1].count(".") == 1
+                    and 1 <= len(self.mail_entry.get().split("@")[1].split(".")[0]) <= 67
+                    and 1 <= len(self.mail_entry.get().split("@")[1].split(".")[1]) <= 63
+                    and not [True for c in self.mail_entry.get().split("@")[1].lower()
+                             if c not in "abcdefghijklmnopqrstuvwxyz0123456789-."]
+                    and "-" not in [self.mail_entry.get().split("@")[1].split(".")[0][0],
+                                    self.mail_entry.get().split("@")[1].split(".")[0][-1],
+                                    self.mail_entry.get().split("@")[1].split(".")[1][0],
+                                    self.mail_entry.get().split("@")[1].split(".")[1][-1]]
+                ) or (not "IPv4") or (
+                    self.mail_entry.get().split("@")[1].count(".") == 3
+                    and self.mail_entry.get().split("@")[1].count("[") == 1
+                    and self.mail_entry.get().split("@")[1].startswith("[")
+                    and self.mail_entry.get().split("@")[1].count("]") == 1
+                    and self.mail_entry.get().split("@")[1].endswith("]")
+                    and not [True for c in self.mail_entry.get().split("@")[1].lower() if c not in "0123456789.[]"]
+                    and len(self.mail_entry.get().split("@")[1][1:-1].split(".")[0])
+                    and int(self.mail_entry.get().split("@")[1][1:-1].split(".")[0]) <= 255
+                    and len(self.mail_entry.get().split("@")[1][1:-1].split(".")[1])
+                    and int(self.mail_entry.get().split("@")[1][1:-1].split(".")[1]) <= 255
+                    and len(self.mail_entry.get().split("@")[1][1:-1].split(".")[2])
+                    and int(self.mail_entry.get().split("@")[1][1:-1].split(".")[2]) <= 255
+                    and len(self.mail_entry.get().split("@")[1][1:-1].split(".")[3])
+                    and int(self.mail_entry.get().split("@")[1][1:-1].split(".")[3]) <= 255
+                ) or (not "IPv6") or (
+                    self.mail_entry.get().split("@")[1].count(":") == 8
+                    and self.mail_entry.get().split("@")[1].lower().count("[") == 1
+                    and self.mail_entry.get().split("@")[1].lower().count("ipv6:") == 1
+                    and self.mail_entry.get().split("@")[1].lower().startswith("[ipv6:")
+                    and self.mail_entry.get().split("@")[1].count("]") == 1
+                    and self.mail_entry.get().split("@")[1].endswith("]")
+                    and not [True for c in self.mail_entry.get().split("@")[1][6:-1].lower()
+                             if c not in "abcdef0123456789:"]
+                    and not [True for i in self.mail_entry.get().split("@")[1][6:-1].lower().split(":")
+                             if i and (int(i, 16) < 0 or int(i, 16) > 65535)]
+                )):
             self.mail_label.config(font=self.theme.register.f_normal, fg=self.theme.register.c_special)
         else:
             self.mail_label.config(font=self.theme.register.f_modify, fg=self.theme.register.c_error)

@@ -2,7 +2,11 @@ import ezyapi.mysql_connection as connect
 from ezyapi.UUID import UUID
 
 
-class UserNotFoundException(Exception):
+class UserError(Exception):
+    pass
+
+
+class UserNotFoundException(UserError):
     def __init__(self, username=None, password=None):
         if username is not None and password is not None:
             super().__init__(f"User '{username}' with password : '{password}' cannot be found.")
@@ -14,7 +18,7 @@ class UserNotFoundException(Exception):
             super().__init__("User cannot be found.")
 
 
-class UserAlreadyExistsException(Exception):
+class UserAlreadyExistsException(UserError):
     def __init__(self):
             super().__init__("User already exists.")
 
@@ -26,15 +30,23 @@ class User:
         self.password: str = None
         self.reconnect(connection_id, password)
 
-    def create_user(self, username: str, completename: str | None, mail: str | None, password: str):
+    @staticmethod
+    def create_user(username: str, completename: str | None, mail: str | None, password: str):
         if not username or password is None:
-            raise Exception("Username or Password not allowed...")
+            raise UserError("Username or Password not allowed...")
         username, completename = str(username), str(completename) if completename else None
         mail, password = str(mail) if mail else None, str(password)
-        connect.execute(f"""INSERT INTO users(username, completename, mail, password)
-                        VALUES ("{username}", {('"' + completename + '"') if completename else 'null'},
+        u = User(username, password)
+        if u.exists():
+            raise UserAlreadyExistsException()
+        connect.execute(f"""INSERT INTO users(uuid, username, completename, mail, password)
+                        VALUES ("{UUID(username)}", "{username}", {('"' + completename + '"') if completename else 'null'},
                         {('"' + mail + '"') if mail else 'null'}, "{password if password else ''}");""")
         connect.commit()
+        u = User(username, password)
+        if not u.connected():
+            raise UserError("Cannot connect the user.")
+        return User(username, password)
 
     def exists(self) -> bool:
         connect.execute(f"""SELECT * FROM users WHERE uuid="{str(self.uuid).lower()}"

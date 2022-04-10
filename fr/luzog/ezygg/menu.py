@@ -5,6 +5,8 @@ from ezyapi.sessions import User
 import ezyapi.mysql_connection as connect
 
 from fr.luzog.ezygg.consts import VERSION
+from fr.luzog.ezygg.user_info import UserInfo
+from fr.luzog.ezygg.chat import ChatFrame
 
 
 class Menu(tk.Frame):
@@ -79,6 +81,12 @@ class Menu(tk.Frame):
         connect.execute(
             """SELECT uuid FROM users WHERE lvl!=1 OR exp!=0 ORDER BY lvl DESC, exp DESC, gp DESC LIMIT 5""")
         top5 = connect.fetch()
+
+        def u_info(usr):
+            self.main.clear_all()
+            UserInfo(self.main, self.main, self.theme, self.lang, usr,
+                     private=usr.get_uuid() != self.main.user.get_uuid()).show()
+
         for i in range(5):
             if len(top5) > i:
                 u = User(top5[i][0])
@@ -87,10 +95,13 @@ class Menu(tk.Frame):
                 text = str(i + 1) + ". ..."
             top = tk.Button(self, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_text,
                             bd=0, relief="solid", font=self.theme.menu.f_top,
-                            text=text)  # TODO -> Command: Show user info
+                            text=text, command=lambda u=u: u_info(u))  # TODO -> Command: Show user info
             top.pack(padx=0, anchor="w")
             self.top_5_widgets.append(top)
         tk.Frame(self, bg=self.theme.menu.bg).pack(pady=self.spacing)
+
+        self.chat = ChatFrame(self, self.main, self.theme, self.lang)
+        self.chat.show()
 
         self.more_frame = tk.Frame(self, bg=self.theme.menu.bg)
         self.more_frame.pack(pady=self.spacing, side="bottom")
