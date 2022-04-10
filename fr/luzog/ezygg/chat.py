@@ -20,37 +20,42 @@ from fr.luzog.ezygg.consts import Theme
 
 
 class Tags(Enum):
-    NORMAL = "def"
-    MENTION = "usr"
-    MENTION_SELF = "usr_self"
-    SENDER = "sender"
-    SENDER_SELF = "sender_serf"
-    DATETIME = "temp"
+    NORMAL = "r"
+    MENTION = "u"
+    MENTION_SELF = "us"
+    SENDER = "s"
+    SENDER_SELF = "ss"
+    DATETIME = "t"
 
-    COLOR_BLACK = "color_black"
-    COLOR_WHITE = "color_white"
-    COLOR_DARK_GRAY = "color_dark_gray"
-    COLOR_GRAY = "color_gray"
-    COLOR_DARK_BLUE = "color_dark_blue"
-    COLOR_BLUE = "color_blue"
-    COLOR_DARK_GREEN = "color_dark_green"
-    COLOR_GREEN = "color_green"
-    COLOR_DARK_AQUA = "color_dark_aqua"
-    COLOR_AQUA = "color_aqua"
-    COLOR_DARK_RED = "color_dark_red"
-    COLOR_RED = "color_red"
-    COLOR_DARK_PURPLE = "color_dark_purple"
-    COLOR_PURPLE = "color_purple"
-    COLOR_GOLD = "color_gold"
-    COLOR_YELLOW = "color_yellow"
+    COLOR_SENDER = "cs"
+    COLOR_SENDER_SELF = "css"
+    COLOR_SENDER_ADMIN = "csa"
+    COLOR_SENDER_SELF_ADMIN = "cssa"
 
-    FORMAT_BOLD = "format_bold"
-    FORMAT_ITALIC = "format_italic"
-    FORMAT_UNDERLINE = "format_underline"
-    FORMAT_BOLD_ITALIC = "format_bold_italic"
-    FORMAT_BOLD_UNDERLINE = "format_bold_underline"
-    FORMAT_ITALIC_UNDERLINE = "format_italic_underline"
-    FORMAT_BOLD_ITALIC_UNDERLINE = "format_bold_italic_underline"
+    COLOR_BLACK = "cb"
+    COLOR_WHITE = "cw"
+    COLOR_DARK_GRAY = "cdga"
+    COLOR_GRAY = "cga"
+    COLOR_DARK_BLUE = "cdb"
+    COLOR_BLUE = "cb"
+    COLOR_DARK_GREEN = "cdgr"
+    COLOR_GREEN = "cgr"
+    COLOR_DARK_AQUA = "cda"
+    COLOR_AQUA = "ca"
+    COLOR_DARK_RED = "cdr"
+    COLOR_RED = "cr"
+    COLOR_DARK_PURPLE = "cdp"
+    COLOR_PURPLE = "cp"
+    COLOR_GOLD = "cgo"
+    COLOR_YELLOW = "cy"
+
+    FORMAT_BOLD = "fb"
+    FORMAT_ITALIC = "fi"
+    FORMAT_UNDERLINE = "fu"
+    FORMAT_BOLD_ITALIC = "fbi"
+    FORMAT_BOLD_UNDERLINE = "fbu"
+    FORMAT_ITALIC_UNDERLINE = "fib"
+    FORMAT_BOLD_ITALIC_UNDERLINE = "fbiu"
 
 
 class ChatItem(tk.Frame):
@@ -68,19 +73,20 @@ class ChatItem(tk.Frame):
         # PhotoImage...
 
         self.header_text = tk.Text(self.header_frame, bg=self.theme.chat.bg, fg=self.theme.chat.c_default,
-                                   font=self.theme.chat.f_default, relief="flat", width=20, wrap=tk.WORD)
+                                   font=self.theme.chat.f_default, relief="flat", width=22, wrap=tk.WORD)
         self.init_tags(self.header_text)
-        self.header_text.insert("end", str(self.sender.get_completename()), (Tags.NORMAL.value,
-                                                          Tags.SENDER_SELF.value if self.ourself else Tags.SENDER.value,
-                                                          Tags.COLOR_DARK_RED.value if self.ourself and self.admin else
-                                                          Tags.COLOR_RED.value if self.admin else
-                                                          Tags.COLOR_DARK_GRAY.value if self.ourself else ""))
+        self.header_text.insert("end", str(self.sender.get_completename()),
+                                (Tags.NORMAL.value, Tags.SENDER_SELF.value if self.ourself else Tags.SENDER.value,
+                                 Tags.COLOR_SENDER_SELF_ADMIN.value if self.ourself and self.admin else
+                                 Tags.COLOR_SENDER_ADMIN.value if self.admin else
+                                 Tags.COLOR_SENDER_SELF.value if self.ourself else
+                                 Tags.COLOR_SENDER.value))
         self.header_text.insert("end", "  ", Tags.NORMAL.value)
         self.header_text.insert("end", str(self.datetime), Tags.DATETIME.value)
         self.header_text.pack(side="left", fill="x")
 
         self.footer_text = tk.Text(self, bg=self.theme.chat.bg, fg=self.theme.chat.c_default,
-                                   font=self.theme.chat.f_default, relief="flat", width=20, wrap=tk.WORD)
+                                   font=self.theme.chat.f_default, relief="flat", width=22, wrap=tk.WORD)
         self.init_tags(self.footer_text)
         self.footer_text.insert("end", str(content), Tags.NORMAL.value)
         self.format()
@@ -224,6 +230,11 @@ class ChatItem(tk.Frame):
         text.tag_configure(Tags.FORMAT_ITALIC_UNDERLINE.value, **self.theme.chat.FORMAT_ITALIC_UNDERLINE)
         text.tag_configure(Tags.FORMAT_BOLD_ITALIC_UNDERLINE.value, **self.theme.chat.FORMAT_BOLD_ITALIC_UNDERLINE)
 
+        text.tag_configure(Tags.COLOR_SENDER.value, **self.theme.chat.COLOR_SENDER)
+        text.tag_configure(Tags.COLOR_SENDER_SELF.value, **self.theme.chat.COLOR_SENDER_SELF)
+        text.tag_configure(Tags.COLOR_SENDER_ADMIN.value, **self.theme.chat.COLOR_SENDER_ADMIN)
+        text.tag_configure(Tags.COLOR_SENDER_SELF_ADMIN.value, **self.theme.chat.COLOR_SENDER_SELF_ADMIN)
+
         text.tag_configure(Tags.COLOR_BLACK.value, **self.theme.chat.COLOR_BLACK)
         text.tag_configure(Tags.COLOR_WHITE.value, **self.theme.chat.COLOR_WHITE)
         text.tag_configure(Tags.COLOR_DARK_GRAY.value, **self.theme.chat.COLOR_DARK_GRAY)
@@ -284,7 +295,7 @@ class ChatFrame(tk.Frame):
         while self.refreshing:
             Event().wait(self.refreshing_timeout)
             if self.refreshing:
-                self.chat_fetch()
+                self.chat_fetch(self.limit)
 
     def destroy(self):
         self.refreshing = False
@@ -302,6 +313,7 @@ class ChatFrame(tk.Frame):
                 self.canvas.yview_scroll(int(-event.delta / 120), "units")
             if self.canvas.yview()[0] == 0.0:
                 self.fetching_up = True
+                self.limit += 10
                 self.chat_fetch(limit=10, up=True)
                 self.canvas.yview_scroll(5, "units")
                 self.fetching_up = False
@@ -421,7 +433,6 @@ class ChatFrame(tk.Frame):
     def show(self):
         self.place()
         self.update_place()
-        self.chat_fetch(10)
         self.refreshing_thread.start()
 
     def update_place(self, e=None):

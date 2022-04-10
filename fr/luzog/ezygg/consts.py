@@ -291,7 +291,7 @@ class Display:
         bg: str = "dark gray"
         datetime_format: str = "%d/%m/%y %H:%M"
 
-        f_entry: tuple[str, int, str] = ("Arial", 10, "")
+        f_entry: tuple[str, int, str] = ("Arial", 9, "")
 
         f_default: tuple[str, int, str] = ("Arial", 9, "")  # VARS: %DEFAULT_FONT% %DEFAULT_FONT_FAMILY% %DEFAULT_FONT_SIZE% %DEFAULT_FONT_MODIF%
         c_default: str = "#000000"                          # VAR:  %DEFAULT_COLOR%
@@ -308,6 +308,11 @@ class Display:
         FORMAT_BOLD_UNDERLINE:        dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "bold underline")})
         FORMAT_ITALIC_UNDERLINE:      dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "italic underline")})
         FORMAT_BOLD_ITALIC_UNDERLINE: dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"font": ("%DEFAULT_FONT_FAMILY%", "%DEFAULT_FONT_SIZE%", "bold italic underline")})
+
+        COLOR_SENDER:                 dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#000000"})
+        COLOR_SENDER_SELF:            dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#202020"})
+        COLOR_SENDER_ADMIN:           dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#ff0000"})
+        COLOR_SENDER_SELF_ADMIN:      dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#ff5555"})
 
         COLOR_BLACK:                  dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#000000"})
         COLOR_WHITE:                  dict[str, str | int | tuple[str, int, str]] = field(default_factory=lambda: {"foreground": "#ffffff"})
@@ -345,7 +350,6 @@ class Display:
                     elif isinstance(v, str):
                         d[k] = format_vars(v)
                 setattr(self, item, d)
-                print(item, getattr(self, item))
 
 
 @dataclass

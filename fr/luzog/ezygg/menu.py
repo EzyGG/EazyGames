@@ -101,7 +101,7 @@ class Menu(tk.Frame):
         tk.Frame(self, bg=self.theme.menu.bg).pack(pady=self.spacing)
 
         self.chat = ChatFrame(self, self.main, self.theme, self.lang)
-        self.chat.show()
+        # Show later to avoid issues
 
         self.more_frame = tk.Frame(self, bg=self.theme.menu.bg)
         self.more_frame.pack(pady=self.spacing, side="bottom")
@@ -125,6 +125,7 @@ class Menu(tk.Frame):
     def show(self):
         self.place(relx=0, rely=1, anchor="sw", height=self.main.winfo_height(),
                    width=self.main.winfo_width() * 17 / 100)
+        self.chat.show()
 
     def update_place(self):
         self.place_configure(relx=0, rely=1, anchor="sw", height=self.main.winfo_height(),

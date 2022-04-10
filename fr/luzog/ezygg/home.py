@@ -16,10 +16,10 @@ class HomeFrame(tk.Frame):
                                    bg=self.theme.home.bg, fg=self.theme.home.fg, font=self.theme.home.f_welcome)
         self.home_label.pack(pady=10, side="top", anchor="center")
         self.menu = Menu(self, self.main, self.theme, self.lang)
-        self.menu.show()
         self.center = Center(self, self.main, self.theme, self.lang)
-        self.center.show()
         self.information = Information(self, self.main, self.theme, self.lang)
+        self.menu.show()
+        self.center.show()
         self.information.show()
 
         # self.temp_geometry = self.winfo_geometry()
