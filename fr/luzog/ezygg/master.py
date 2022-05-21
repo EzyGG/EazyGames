@@ -1,5 +1,8 @@
 import os
 import sys
+import playsound
+import threading
+
 import requests
 import tkinter as tk
 
@@ -13,7 +16,7 @@ from fr.luzog.ezygg.register import RegisterFrame
 
 
 class Main(tk.Tk):
-    def __init__(self, theme: Theme = Theme.default(), lang: Lang = Lang.FR()):
+    def __init__(self, theme: Theme = Theme.dark(), lang: Lang = Lang.FR(), restart: bool = False):
         self.theme, self.lang = theme, lang
         self.user: User | None = None
 
@@ -118,7 +121,7 @@ class Main(tk.Tk):
                 self.register.pwd_entry.insert(0, pwd)
                 self.register.vpwd_entry.delete(0, "end")
                 self.register.vpwd_entry.insert(0, pwd)
-                self.register.key_press()
+            self.register.key_press()
             self.register.show()
         else:
             self.login = LogInFrame(self, self, self.theme, self.lang)
@@ -129,8 +132,39 @@ class Main(tk.Tk):
                 self.login.user_pwd_entry.delete(0, "end")
                 self.login.user_pwd_entry.insert(0, pwd)
             self.login.show()
-            if not no_chk:
+            if not no_chk and not restart:
                 self.login.verify_user()
+
+        # ---
+        # See self.ngguu_target func to more details
+        #
+        # self.ngguu_count = 0
+        # self.ngguu_running = False
+        # self.ngguu_thread = threading.Thread(target=self.ngguu_target)
+        # self.bind_all("<k>", self.ngguu_handler, add="+")
+
+    def ngguu_handler(self, e=None):
+        print(self.ngguu_count)
+        if self.ngguu_count < 10:
+            self.ngguu_count += 1
+            return
+
+        self.ngguu_count = -1
+
+        if self.ngguu_running:
+            self.ngguu_running = False
+        else:
+            self.ngguu_thread.start()
+
+    def ngguu_target(self):
+        """This doesnt work because : playsound.playsound freeze the actions while the music is playing
+            and a python thread cannot be stopped. So its poop job. Sad."""
+
+        playsound.playsound(os.getcwd().replace("\\", "/") + "/rsrc/rickroll.mp3")
+        self.ngguu_running = True
+        while self.ngguu_running:
+            pass
+        playsound.playsound(None)
 
     @staticmethod
     def dwl(url: str, name: str):
@@ -149,7 +183,7 @@ class Main(tk.Tk):
 
     def restart(self):
         self.stop()
-        self.__init__()
+        self.__init__(restart=True)
 
     def start(self):
         self.mainloop()

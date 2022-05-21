@@ -1,3 +1,4 @@
+import webbrowser
 import tkinter as tk
 from PIL import Image as Image, ImageTk
 
@@ -51,51 +52,54 @@ class Menu(tk.Frame):
         self.face_img = tk.Label(self, bg=self.theme.menu.bg, image=_img, height=100, width=100)
         self.face_img.image = _img
         self.face_img.pack(anchor="w")
-        tk.Frame(self, bg=self.theme.menu.bg).pack(pady=self.spacing)
+        tk.Frame(self, bg=self.theme.menu.bg).pack(pady=self.spacing * 2)
 
-        self.menu_title_lbl = tk.Label(self, bg=self.theme.menu.bg, fg=self.theme.menu.fg_title, font=self.theme.menu.f_title,
-                                       text=self.lang.menu.title)
-        self.menu_title_lbl.pack(anchor="w")
-        self.all_games_btn = tk.Button(self, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_text,
-                                       bd=0, relief="solid", text="- " + self.lang.menu.all_games,
-                                       command=lambda: self.all_games_btn.configure(text=" - " + self.lang.menu.not_now))
-        self.all_games_btn.pack(padx=self.intent, anchor="w")
-        self.tops_btn = tk.Button(self, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_text,
-                                  bd=0, relief="solid", text="- " + self.lang.menu.tops,
-                                  command=lambda: self.tops_btn.configure(text=" - " + self.lang.menu.not_now))
-        self.tops_btn.pack(padx=self.intent, anchor="w")
-        self.reward_btn = tk.Button(self, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_text,
-                                    bd=0, relief="solid", text="- " + self.lang.menu.reward,
-                                    command=lambda: self.reward_btn.configure(text=" - " + self.lang.menu.not_now))
-        self.reward_btn.pack(padx=self.intent, anchor="w")
-        self.shop_btn = tk.Button(self, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_text,
-                                  bd=0, relief="solid", text="- " + self.lang.menu.shop,
-                                  command=lambda: self.shop_btn.configure(text=" - " + self.lang.menu.not_now))
-        self.shop_btn.pack(padx=self.intent, anchor="w")
-        tk.Frame(self, bg=self.theme.menu.bg).pack(pady=self.spacing)
+        # self.menu_title_lbl = tk.Label(self, bg=self.theme.menu.bg, fg=self.theme.menu.fg_title, font=self.theme.menu.f_title,
+        #                                text=self.lang.menu.title)
+        # self.menu_title_lbl.pack(anchor="w")
+        # self.all_games_btn = tk.Button(self, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_text,
+        #                                bd=0, relief="solid", text="- " + self.lang.menu.all_games,
+        #                                command=lambda: self.all_games_btn.configure(text=" - " + self.lang.menu.not_now))
+        # self.all_games_btn.pack(padx=self.intent, anchor="w")
+        # self.tops_btn = tk.Button(self, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_text,
+        #                           bd=0, relief="solid", text="- " + self.lang.menu.tops,
+        #                           command=lambda: self.tops_btn.configure(text=" - " + self.lang.menu.not_now))
+        # self.tops_btn.pack(padx=self.intent, anchor="w")
+        # self.reward_btn = tk.Button(self, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_text,
+        #                             bd=0, relief="solid", text="- " + self.lang.menu.reward,
+        #                             command=lambda: self.reward_btn.configure(text=" - " + self.lang.menu.not_now))
+        # self.reward_btn.pack(padx=self.intent, anchor="w")
+        # self.shop_btn = tk.Button(self, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_text,
+        #                           bd=0, relief="solid", text="- " + self.lang.menu.shop,
+        #                           command=lambda: self.shop_btn.configure(text=" - " + self.lang.menu.not_now))
+        # self.shop_btn.pack(padx=self.intent, anchor="w")
+        # tk.Frame(self, bg=self.theme.menu.bg).pack(pady=self.spacing)
 
         self.menu_top_lbl = tk.Label(self, bg=self.theme.menu.bg, fg=self.theme.menu.fg_title, font=self.theme.menu.f_title,
                                      text=self.lang.menu.top5)
         self.menu_top_lbl.pack(anchor="w")
         self.top_5_widgets = []
         connect.execute(
-            """SELECT uuid FROM users WHERE lvl!=1 OR exp!=0 ORDER BY lvl DESC, exp DESC, gp DESC LIMIT 5""")
+            """SELECT uuid FROM users WHERE exp!=0 ORDER BY lvl DESC, exp DESC, gp DESC LIMIT 5""")
         top5 = connect.fetch()
 
         def u_info(usr):
             self.main.clear_all()
+            self.chat.destroy()
             UserInfo(self.main, self.main, self.theme, self.lang, usr,
-                     private=usr.get_uuid() != self.main.user.get_uuid()).show()
+                     private=not self.main.user.is_admin() and usr.get_uuid() != self.main.user.get_uuid()).show()
 
         for i in range(5):
             if len(top5) > i:
                 u = User(top5[i][0])
-                text = str(i + 1) + ". " + u.get_completename() + " [" + str(u.get_lvl()) + "]"
+                text = str(i + 1) + ". " + u.get_completename() + " [" + str(u.get_exp()) + "]"
+                usr = True
             else:
                 text = str(i + 1) + ". ..."
+                usr = False
             top = tk.Button(self, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_text,
                             bd=0, relief="solid", font=self.theme.menu.f_top,
-                            text=text, command=lambda u=u: u_info(u))  # TODO -> Command: Show user info
+                            text=text, command=(lambda u=u: u_info(u)) if usr else (lambda: None))
             top.pack(padx=0, anchor="w")
             self.top_5_widgets.append(top)
         tk.Frame(self, bg=self.theme.menu.bg).pack(pady=self.spacing)
@@ -107,13 +111,13 @@ class Menu(tk.Frame):
         self.more_frame.pack(pady=self.spacing, side="bottom")
         self.rules_politics = tk.Button(self.more_frame, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_info,
                                         bd=0, relief="solid", font=self.theme.menu.f_info,
-                                        text=self.lang.menu.politics,  # TODO -> Command: redirect to Politics Page
-                                        command=lambda: self.rules_politics.configure())
+                                        text=self.lang.menu.politics,
+                                        command=lambda: webbrowser.open(self.theme.globals.link_website))
         self.rules_politics.pack(side="left", padx=0)
         self.version_btn = tk.Button(self.more_frame, activebackground=self.theme.menu.bg, bg=self.theme.menu.bg, fg=self.theme.menu.fg_info,
                                        bd=0, relief="solid", font=self.theme.menu.f_info,
-                                       text=VERSION.get_version(),  # TODO -> Command: redirect to GitHub
-                                       command=lambda: self.version_btn.configure())
+                                       text=VERSION.get_version(),
+                                       command=lambda: webbrowser.open(self.theme.globals.link_github))
         self.version_btn.pack(side="left", padx=0)
 
         connect.execute("""SELECT * FROM users""")

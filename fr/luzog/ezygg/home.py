@@ -11,6 +11,7 @@ class HomeFrame(tk.Frame):
 
         super().__init__(master, background=self.theme.home.bg, highlightthickness=self.theme.home.highlightthickness,
                          highlightbackground=self.theme.home.highlightbackground)
+
         self.home_label = tk.Label(self, text=self.lang.home.welcome + " " + (
             self.main.user.get_completename() if self.main.user.get_completename() is not None else self.main.user.get_username()) + " !",
                                    bg=self.theme.home.bg, fg=self.theme.home.fg, font=self.theme.home.f_welcome)

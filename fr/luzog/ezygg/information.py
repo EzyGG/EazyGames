@@ -1,6 +1,8 @@
 import tkinter as tk
 from PIL import Image as Image, ImageTk
 
+from fr.luzog.ezygg.user_info import UserInfo
+
 
 class Information(tk.Frame):
     FACE_IMG_SIZE = (96, 96)
@@ -14,9 +16,10 @@ class Information(tk.Frame):
         tk.Frame(self, bg=self.theme.information.bg).pack(pady=35)
 
         try:
-            self.img = Image.open("rsrc/temp/profile.png")
+            open(f"rsrc/temp/profile-{main.user.uuid}.png", "r").close()  # << Throws error if doesnt exist
+            self.img = Image.open(f"rsrc/temp/profile-{main.user.uuid}.png")
         except Exception:
-            self.img = Image.open("/rsrc/default_face.png")
+            self.img = Image.open("rsrc/default_face.png")
         _, _, width, height = self.img.getbbox()
         if width > self.FACE_IMG_SIZE[0] or height > self.FACE_IMG_SIZE[1]:
             if width - self.FACE_IMG_SIZE[0] > height - self.FACE_IMG_SIZE[1]:
@@ -72,13 +75,13 @@ class Information(tk.Frame):
         tk.Label(self, bg=self.theme.information.bg, fg=self.theme.information.fg_label, text="---").pack(anchor="e")
         tk.Frame(self, bg=self.theme.information.bg).pack(pady=self.spacing)
 
-        self.lvl_info = tk.Label(self, bg=self.theme.information.bg, fg=self.theme.information.fg_label,
-                                 font=self.theme.information.f_label, text=self.lang.information.lvl)
-        self.lvl_info.pack(anchor="e")
-        self.lvl = tk.Label(self, bg=self.theme.information.bg, fg=self.theme.information.fg_text,
-                            text=self.main.user.get_lvl())
-        self.lvl.pack(anchor="e")
-        tk.Frame(self, bg=self.theme.information.bg).pack(pady=self.spacing)
+        # self.lvl_info = tk.Label(self, bg=self.theme.information.bg, fg=self.theme.information.fg_label,
+        #                          font=self.theme.information.f_label, text=self.lang.information.lvl)
+        # self.lvl_info.pack(anchor="e")
+        # self.lvl = tk.Label(self, bg=self.theme.information.bg, fg=self.theme.information.fg_text,
+        #                     text=self.main.user.get_lvl())
+        # self.lvl.pack(anchor="e")
+        # tk.Frame(self, bg=self.theme.information.bg).pack(pady=self.spacing)
 
         self.exp_info = tk.Label(self, bg=self.theme.information.bg, fg=self.theme.information.fg_label,
                                  font=self.theme.information.f_label, text=self.lang.information.exp)
@@ -109,12 +112,17 @@ class Information(tk.Frame):
         tk.Label(self, bg=self.theme.information.bg, fg=self.theme.information.fg_label, text="---").pack(anchor="e")
         tk.Frame(self, bg=self.theme.information.bg).pack(pady=self.spacing)
 
+        def user_info():
+            for c in self.main.winfo_children():
+                c.destroy()
+            UserInfo(self.main, self.main, self.theme, self.lang, self.main.user, private=False).show()
+
         self.settings_frame = tk.Frame(self, bg=self.theme.information.bg)
         self.settings_frame.pack(pady=self.spacing, side="bottom")
         self.more_button = tk.Button(self.settings_frame, activebackground=self.theme.information.bg,
                                      bg=self.theme.information.bg, fg=self.theme.information.fg_btn,
                                      bd=1, relief="solid", width=10, text=self.lang.information.more, command=lambda:
-            self.more_button.configure(text=self.lang.information.not_now))
+            user_info())
         self.more_button.pack(side="left")
         self.logout_button = tk.Button(self.settings_frame, activebackground=self.theme.information.bg,
                                        bg=self.theme.information.bg, fg=self.theme.information.fg_btn,

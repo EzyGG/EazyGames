@@ -18,7 +18,7 @@ class RegisterFrame(tk.Frame):
 
         self.user_name_label = tk.Label(self.user_frame, bg=self.theme.register.bg, fg=self.theme.register.c_normal, text=self.lang.register.user_name_label)
         self.user_name_label.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky="w")
-        self.user_name_entry = tk.Entry(self.user_frame, bg=self.theme.register.entry_bg, fg=self.theme.register.c_normal, width=28, font=self.theme.register.f_mono)
+        self.user_name_entry = tk.Entry(self.user_frame, bg=self.theme.register.entry_bg, fg=self.theme.register.c_normal, width=28, font=self.theme.register.f_mono, relief="flat")
         self.user_name_entry.grid(row=0, column=2, columnspan=2, padx=5, pady=5)
 
         tk.Frame(self.user_frame, bg=self.theme.register.bg).grid(row=1, column=0, columnspan=4, pady=10)
@@ -26,18 +26,18 @@ class RegisterFrame(tk.Frame):
         self.complete_last_name_label = tk.Label(self.user_frame, bg=self.theme.register.bg, fg=self.theme.register.c_normal, text=self.lang.register.complete_last_name_label)
         self.complete_last_name_label.grid(row=2, column=0, padx=5, pady=5, sticky="w")
         self.complete_last_name_entry = tk.Entry(self.user_frame, bg=self.theme.register.entry_bg, fg=self.theme.register.c_normal, width=20,
-                                                 font=self.theme.register.f_mono)
+                                                 font=self.theme.register.f_mono, relief="flat")
         self.complete_last_name_entry.grid(row=2, column=1, padx=5, pady=5)
 
         self.complete_first_name_label = tk.Label(self.user_frame, bg=self.theme.register.bg, fg=self.theme.register.c_normal, text=self.lang.register.complete_first_name_label)
         self.complete_first_name_label.grid(row=2, column=2, padx=5, pady=5, sticky="w")
         self.complete_first_name_entry = tk.Entry(self.user_frame, bg=self.theme.register.entry_bg, fg=self.theme.register.c_normal, width=20,
-                                                  font=self.theme.register.f_mono)
+                                                  font=self.theme.register.f_mono, relief="flat")
         self.complete_first_name_entry.grid(row=2, column=3, padx=5, pady=5)
 
         self.mail_label = tk.Label(self.user_frame, bg=self.theme.register.bg, fg=self.theme.register.c_normal, text=self.lang.register.mail_label)
         self.mail_label.grid(row=3, column=0, padx=5, pady=5, sticky="w")
-        self.mail_entry = tk.Entry(self.user_frame, bg=self.theme.register.entry_bg, fg=self.theme.register.c_normal, width=50, font=self.theme.register.f_mono)
+        self.mail_entry = tk.Entry(self.user_frame, bg=self.theme.register.entry_bg, fg=self.theme.register.c_normal, width=50, font=self.theme.register.f_mono, relief="flat")
         self.mail_entry.grid(row=3, column=1, columnspan=3, padx=5, pady=5)
 
         tk.Frame(self.user_frame, bg=self.theme.register.bg).grid(row=4, column=0, columnspan=4, pady=10)
@@ -47,20 +47,20 @@ class RegisterFrame(tk.Frame):
 
         self.pwd_label = tk.Label(self.user_frame, bg=self.theme.register.bg, fg=self.theme.register.c_normal, text=self.lang.register.pwd_label)
         self.pwd_label.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky="w")
-        self.pwd_entry = tk.Entry(self.user_frame, bg=self.theme.register.entry_bg, fg=self.theme.register.c_normal, width=28, font=self.theme.register.f_mono, show="*")
+        self.pwd_entry = tk.Entry(self.user_frame, bg=self.theme.register.entry_bg, fg=self.theme.register.c_normal, width=28, font=self.theme.register.f_mono, show="*", relief="flat")
         self.pwd_entry.grid(row=6, column=2, columnspan=2, padx=5, pady=5)
 
         self.vpwd_label = tk.Label(self.user_frame, bg=self.theme.register.bg, fg=self.theme.register.c_normal, text=self.lang.register.vpwd_label)
         self.vpwd_label.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky="w")
-        self.vpwd_entry = tk.Entry(self.user_frame, bg=self.theme.register.entry_bg, fg=self.theme.register.c_normal, width=28, font=self.theme.register.f_mono, show="*")
+        self.vpwd_entry = tk.Entry(self.user_frame, bg=self.theme.register.entry_bg, fg=self.theme.register.c_normal, width=28, font=self.theme.register.f_mono, show="*", relief="flat")
         self.vpwd_entry.grid(row=7, column=2, columnspan=2, padx=5, pady=5)
 
         self.user_frame.pack(side="top", pady=25)
 
         self.other_frame = tk.Label(self, bg=self.theme.register.bg)
-        self.login_label = tk.Label(self.other_frame, bg=self.theme.register.bg, fg=self.theme.register.c_normal, text=self.lang.register.login_label)
+        self.login_label = tk.Label(self.other_frame, bg=self.theme.register.bg, fg=self.theme.register.c_other, text=self.lang.register.login_label)
         self.login_label.pack(side="left", padx=10)
-        self.login_btn = tk.Button(self.other_frame, activebackground=self.theme.register.bg, bg=self.theme.register.bg, fg=self.theme.register.c_normal,
+        self.login_btn = tk.Button(self.other_frame, activebackground=self.theme.register.bg, bg=self.theme.register.bg, fg=self.theme.register.c_other,
                                    bd=0, relief="solid", text=self.lang.register.login_btn, font=("", 10, "underline"),
                                    command=self.login)
         self.login_btn.pack(side="left", padx=10)

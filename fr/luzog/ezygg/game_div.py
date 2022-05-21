@@ -81,14 +81,10 @@ class GameDiv(tk.Frame):
         self.catchphrase_label.pack()
 
         self.play_frame = tk.Frame(self, bg=self.theme.game_div.bg)
-        self.more_button = tk.Button(self.play_frame, activebackground=self.theme.game_div.bg, bg=self.theme.game_div.bg, fg=self.theme.game_div.fg_btn,
-                                     bd=1, relief="solid", width=10, text=self.lang.game_div.more, command=lambda:
-            self.more_button.configure(text=self.lang.game_div.not_now), font=self.theme.game_div.f_btn)
-        self.more_button.pack(side="left", padx=8)
         self.play_button = tk.Button(self.play_frame, activebackground=self.theme.game_div.bg, bg=self.theme.game_div.bg, fg=self.theme.game_div.fg_btn,
                                      bd=1, relief="solid", width=10, text=self.lang.game_div.play, font=self.theme.game_div.f_btn,
                                      command=self.play)
-        self.play_button.pack(side="right", padx=8)
+        self.play_button.pack(padx=8)
         self.play_frame.pack(side="bottom")
 
         self.reward_frame2 = tk.Frame(self, bg=self.theme.game_div.bg)

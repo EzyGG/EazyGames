@@ -97,11 +97,15 @@ class ChatItem(tk.Frame):
 
         self.bind_all("<Configure>", self.up2date, add="+")
 
+    def destroy(self):
+        self.unbind_all("<Configure>")
+        super().destroy()
+
     def format(self):
         cont: str = self.footer_text.get("1.0", "end")
         self.footer_text.delete("1.0", "end")
 
-        colors = []
+        colors = [Tags.COLOR_WHITE]
 
         index, dont_insert = 0, 0
         while True:
@@ -137,7 +141,7 @@ class ChatItem(tk.Frame):
                     case "l": colors.append(Tags.FORMAT_BOLD)
                     case "o": colors.append(Tags.FORMAT_ITALIC)
                     case "n": colors.append(Tags.FORMAT_UNDERLINE)
-                    case "r": colors.clear()
+                    case "r": colors = [Tags.COLOR_WHITE]
                     case _: pass
 
                 colors = list(set(colors))
@@ -254,7 +258,7 @@ class ChatItem(tk.Frame):
 
 
 class ChatFrame(tk.Frame):
-    def __init__(self, master, main, theme, lang, x=0, y=400, relx=0, rely=0):
+    def __init__(self, master, main, theme, lang, x=4, y=400, relx=0, rely=0):
         self.main, self.theme, self.lang = main, theme, lang
         self.place_x, self.place_y, self.place_relx, self.place_rely = x, y, relx, rely
         self.height, self.width = 0, 0
@@ -287,19 +291,20 @@ class ChatFrame(tk.Frame):
 
         self.refreshing = True
         self.refreshing_timeout = 1
-        self.refreshing_thread: Thread = Thread(target=self.listener)
 
-        self.after(100, self.update_place)
+        self.after(1000, self.update_place)
 
     def listener(self):
-        while self.refreshing:
-            Event().wait(self.refreshing_timeout)
-            if self.refreshing:
-                self.chat_fetch(self.limit)
+        if self.refreshing:
+            self.chat_fetch(self.limit)
+        if self.refreshing:
+            self.after(self.refreshing_timeout, self.listener)
 
     def destroy(self):
         self.refreshing = False
-        self.refreshing_thread.join()
+        for item in list(self.chats.values()):
+            item.destroy()
+        self.canvas.unbind_all("<Configure>")
         super().destroy()
 
     def is_in(self, __set_is_in: bool | None = None) -> bool:
@@ -433,7 +438,7 @@ class ChatFrame(tk.Frame):
     def show(self):
         self.place()
         self.update_place()
-        self.refreshing_thread.start()
+        self.listener()
 
     def update_place(self, e=None):
         self.geometry()

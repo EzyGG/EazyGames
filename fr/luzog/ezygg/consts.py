@@ -191,6 +191,10 @@ class Display:
         color_gp: str = "#FFFF00"
         color_special: str = "#FF00FF"
 
+        link_website: str = "https://ezy.webflow.io"
+        link_github: str = "https://github.com/EzyGG"
+        link_forgot_password: str = "https://ezy.webflow.io"
+
     @dataclass
     class Main:
         bg: str = "gray"
@@ -200,7 +204,13 @@ class Display:
     @dataclass
     class Login:
         fg: str = "black"
+        fg_other: str = "black"
+        fg_btn: str = "black"
         bg: str = "dim gray"
+        f_title: tuple[str, int, str] = ("", 30, "")
+        f_normal: tuple[str, int, str] = ("", 12, "")
+        f_underlined: tuple[str, int, str] = ("", 12, "underline")
+        f_entry: tuple[str, int, str] = ("Consolas", 12, "")
         entry_bg: str = "gray"
         highlightthickness: int = 2
         highlightbackground: str = "black"
@@ -213,6 +223,7 @@ class Display:
         highlightbackground: str = "black"
 
         c_normal: str = "#000000"
+        c_other: str = "#000000"
         c_warn: str = "#ffa000"
         c_special: str = "#00a0ff"
         c_error: str = "#ff0000"
@@ -351,6 +362,21 @@ class Display:
                         d[k] = format_vars(v)
                 setattr(self, item, d)
 
+    @dataclass
+    class UserInfo:
+        bg_global: str = "gray"
+        bg_content: str = "gray"
+        label_color: str = "black"
+        content_color: str = "black"
+        btn_color: str = "black"
+        btn_bd: int = 1
+
+        f_label: tuple[str, int, str] = ("Arial", 10, "bold underline")
+        f_content: tuple[str, int, str] = ("Arial", 10, "")
+        f_btn: tuple[str, int, str] = ("Arial", 10, "")
+
+        back: str = "Retour"
+
 
 @dataclass
 class Theme:
@@ -365,6 +391,7 @@ class Theme:
     information: Display.Information
     game_div: Display.GameDiv
     chat: Display.Chat
+    user_info: Display.UserInfo
 
     @staticmethod
     def original():
@@ -380,38 +407,75 @@ class Theme:
             information=Display.Information(),
             game_div=Display.GameDiv(),
             chat=Display.Chat(),
-        )
-
-    @staticmethod
-    def default():
-        return Theme(
-            name="default",
-            globals=Display.Globals("skyblue2", "slategray1", "slategray1"),
-            main=Display.Main(),
-            login=Display.Login(),
-            register=Display.Register(),
-            home=Display.Home(),
-            menu=Display.Menu(),
-            center=Display.Center(),
-            information=Display.Information(),
-            game_div=Display.GameDiv(),
-            chat=Display.Chat(),
+            user_info=Display.UserInfo(),
         )
 
     @staticmethod
     def dark():
         return Theme(
-            name="dark",
-            globals=Display.Globals(),
-            main=Display.Main(),
-            login=Display.Login(),
-            register=Display.Register(),
-            home=Display.Home(),
-            menu=Display.Menu(),
-            center=Display.Center(),
-            information=Display.Information(),
-            game_div=Display.GameDiv(),
-            chat=Display.Chat(),
+            name="default",
+            globals=Display.Globals("skyblue2", "slategray1", "slategray1"),
+            main=Display.Main(
+                bg="#121212",
+                highlightbackground="#272727",
+                highlightthickness=0,
+            ),
+            login=Display.Login(
+                bg="#272727",
+                fg="white",
+                entry_bg="#333333",
+                fg_other="#a647f0",
+                fg_btn="white",
+            ),
+            register=Display.Register(
+                bg="#272727",
+                entry_bg="#333333",
+                c_normal="white",
+                c_other="#a647f0",
+            ),
+            home=Display.Home(
+                bg="#121212",
+                fg="white",
+                highlightthickness=0,
+            ),
+            menu=Display.Menu(
+                bg="#272727",
+                fg_players="#d5d5d5",
+                fg_info="#d5d5d5",
+                fg_title="#d5d5d5",
+                fg_text="#d5d5d5",
+            ),
+            center=Display.Center(
+                bg="#121212"
+            ),
+            information=Display.Information(
+                bg="#272727",
+                fg_btn="#d5d5d5",
+                fg_text="#d5d5d5",
+                fg_label="#d5d5d5",
+            ),
+            game_div=Display.GameDiv(
+                highlightthickness=0,
+                bg_image="#272727",
+                bg="#3e3e3e",
+                fg_catchphrase="#d5d5d5",
+                fg_title="#d5d5d5",
+                fg_btn="#d5d5d5",
+                fg_label="#666666",
+            ),
+            chat=Display.Chat(
+                bg="#393939",
+                c_default="white",
+                COLOR_WHITE={"foreground": "#bbbbbb"},
+                COLOR_SENDER={"foreground": "#bbbbbb"},
+            ),
+            user_info=Display.UserInfo(
+                bg_global="#121212",
+                bg_content="#272727",
+                label_color="#666666",
+                content_color="#666666",
+                btn_color="#666666",
+            ),
         )
 
     @staticmethod
@@ -428,4 +492,5 @@ class Theme:
             information=Display.Information(),
             game_div=Display.GameDiv(),
             chat=Display.Chat(),
+            user_info=Display.UserInfo(),
         )
