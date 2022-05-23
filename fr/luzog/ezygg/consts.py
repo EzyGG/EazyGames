@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from ezyapi.game_manager import GameVersion
 
 
-VERSION = GameVersion("b1.4")
+VERSION = GameVersion("v3.2.4")
 
 
 class Constants:
